@@ -164,9 +164,9 @@
     <script>
         function balanceApp() {
             return {
-                binanceBalance: 1250.50,
-                redotpayBalance: 340.00,
-                cihBalance: 5600.00,
+                binanceBalance: 12205.98,
+                redotpayBalance: 2919.29,
+                cihBalance: 2907.51,
                 
                 form: {
                     account: 'CIH Bank',
@@ -175,10 +175,7 @@
                     description: ''
                 },
 
-                transactions: [
-                    { account: 'CIH Bank', type: 'income', amount: 2000, description: 'Local Sales', date: '2026-10-27' },
-                    { account: 'Binance', type: 'income', amount: 450, description: 'P2P Transfer', date: '2026-10-26' }
-                ],
+                transactions: [],
 
                 get totalNetWorthMAD() {
                     let binanceMAD = this.binanceBalance * 10;
