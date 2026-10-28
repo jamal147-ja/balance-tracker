@@ -1,172 +1,11 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balance Tracker Dashboard</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
-</head>
-<body class="bg-gray-900 text-gray-100 min-h-screen" x-data="balanceApp()">
-
-    <!-- Header -->
-    <header class="bg-gray-800 border-b border-gray-700 py-4 px-6 shadow-md">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold text-emerald-400">💰 Financial Balance Tracker</h1>
-            <div class="text-sm bg-gray-700 px-3 py-1 rounded-full text-gray-300">
-                Exchange Rate (USD/MAD): <span class="font-semibold text-white">10.0 MAD</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Container -->
-    <main class="container mx-auto px-4 py-6 space-y-6">
-
-        <!-- Balance Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <!-- Binance -->
-            <div class="bg-gray-800 border border-gray-700 p-5 rounded-xl shadow">
-                <div class="flex justify-between items-center">
-                    <span class="text-gray-400 font-medium">Binance (Crypto)</span>
-                    <span class="bg-amber-500/10 text-amber-400 text-xs px-2 py-1 rounded">API Connected</span>
-                </div>
-                <div class="mt-4">
-                    <h2 class="text-2xl font-bold text-white" x-text="formatUSD(binanceBalance)"></h2>
-                    <p class="text-xs text-gray-400 mt-1" x-text="formatMAD(binanceBalance * 10)"></p>
-                </div>
-            </div>
-
-            <!-- RedotPay -->
-            <div class="bg-gray-800 border border-gray-700 p-5 rounded-xl shadow">
-                <div class="flex justify-between items-center">
-                    <span class="text-gray-400 font-medium">RedotPay (Card)</span>
-                    <span class="bg-blue-500/10 text-blue-400 text-xs px-2 py-1 rounded">API Connected</span>
-                </div>
-                <div class="mt-4">
-                    <h2 class="text-2xl font-bold text-white" x-text="formatUSD(redotpayBalance)"></h2>
-                    <p class="text-xs text-gray-400 mt-1" x-text="formatMAD(redotpayBalance * 10)"></p>
-                </div>
-            </div>
-
-            <!-- CIH Bank -->
-            <div class="bg-gray-800 border border-gray-700 p-5 rounded-xl shadow">
-                <div class="flex justify-between items-center">
-                    <span class="text-gray-400 font-medium">CIH Bank (Local)</span>
-                    <span class="bg-purple-500/10 text-purple-400 text-xs px-2 py-1 rounded">Manual / CSV</span>
-                </div>
-                <div class="mt-4">
-                    <h2 class="text-2xl font-bold text-white" x-text="formatMAD(cihBalance)"></h2>
-                    <p class="text-xs text-gray-400 mt-1" x-text="formatUSD(cihBalance / 10)"></p>
-                </div>
-            </div>
-
-            <!-- Total Net Worth -->
-            <div class="bg-emerald-900/20 border border-emerald-500/30 p-5 rounded-xl shadow">
-                <div class="flex justify-between items-center">
-                    <span class="text-emerald-300 font-medium">Total Net Worth</span>
-                    <span class="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-1 rounded">Combined</span>
-                </div>
-                <div class="mt-4">
-                    <h2 class="text-2xl font-bold text-emerald-400" x-text="formatMAD(totalNetWorthMAD)"></h2>
-                    <p class="text-xs text-emerald-300/70 mt-1" x-text="formatUSD(totalNetWorthMAD / 10)"></p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Actions & Form Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Add Transaction Form -->
-            <div class="bg-gray-800 border border-gray-700 p-5 rounded-xl shadow lg:col-span-1">
-                <h3 class="text-lg font-bold text-white mb-4">➕ Add New Transaction</h3>
-                <form @submit.prevent="addTransaction" class="space-y-4">
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Account</label>
-                        <select x-model="form.account" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
-                            <option value="CIH Bank">CIH Bank (MAD)</option>
-                            <option value="Binance">Binance (USD)</option>
-                            <option value="RedotPay">RedotPay (USD)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Transaction Type</label>
-                        <select x-model="form.type" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
-                            <option value="income">Deposit / Income (+)</option>
-                            <option value="expense">Withdrawal / Expense (-)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Amount</label>
-                        <input type="number" step="0.01" x-model.number="form.amount" placeholder="0.00" required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Description</label>
-                        <input type="text" x-model="form.description" placeholder="e.g., P2P transfer, Ads..." required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg transition duration-200">
-                        Save Transaction
-                    </button>
-                </form>
-            </div>
-
-            <!-- Transactions Table -->
-            <div class="bg-gray-800 border border-gray-700 p-5 rounded-xl shadow lg:col-span-2 flex flex-col justify-between">
-                <div>
-                    <h3 class="text-lg font-bold text-white mb-4">📋 Recent Transactions</h3>
-                    <div class="overflow-x-auto max-h-[300px] overflow-y-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-gray-700 text-gray-300 sticky top-0">
-                                <tr>
-                                    <th class="p-3">Account</th>
-                                    <th class="p-3">Description</th>
-                                    <th class="p-3">Amount</th>
-                                    <th class="p-3">Date</th>
-                                    <th class="p-3">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-700">
-                                <template x-for="(tx, index) in transactions" :key="index">
-                                    <tr>
-                                        <td class="p-3" x-text="tx.account"></td>
-                                        <td class="p-3 text-gray-300" x-text="tx.description"></td>
-                                        <td class="p-3 font-semibold" :class="tx.type === 'income' ? 'text-emerald-400' : 'text-rose-400'">
-                                            <span x-text="tx.type === 'income' ? '+' : '-'"></span>
-                                            <span x-text="tx.amount"></span>
-                                            <span x-text="tx.account === 'CIH Bank' ? 'MAD' : 'USD'"></span>
-                                        </td>
-                                        <td class="p-3 text-xs text-gray-400" x-text="tx.date"></td>
-                                        <td class="p-3">
-                                            <button @click="deleteTransaction(index)" class="text-rose-400 hover:text-rose-300 text-xs bg-rose-500/10 px-2 py-1 rounded">Delete</button>
-                                        </td>
-                                    </tr>
-                                </template>
-                                <template x-if="transactions.length === 0">
-                                    <tr>
-                                        <td colspan="5" class="text-center py-6 text-gray-400">No transactions recorded yet.</td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- App Logic with LocalStorage -->
+<!-- App Logic with Forced Reset -->
     <script>
         function balanceApp() {
             return {
-                binanceBalance: Number(localStorage.getItem('binanceBalance')) || 12205.98,
-                redotpayBalance: Number(localStorage.getItem('redotpayBalance')) || 2919.29,
-                cihBalance: Number(localStorage.getItem('cihBalance')) || 2907.51,
+                // Force load new starting balances if storage is outdated
+                binanceBalance: Number(localStorage.getItem('binance_v2_binance')) || 12205.98,
+                redotpayBalance: Number(localStorage.getItem('binance_v2_redot')) || 2919.29,
+                cihBalance: Number(localStorage.getItem('binance_v2_cih')) || 2907.51,
                 
                 form: {
                     account: 'CIH Bank',
@@ -175,13 +14,13 @@
                     description: ''
                 },
 
-                transactions: JSON.parse(localStorage.getItem('transactions')) || [],
+                transactions: JSON.parse(localStorage.getItem('binance_v2_tx')) || [],
 
                 saveData() {
-                    localStorage.setItem('binanceBalance', this.binanceBalance);
-                    localStorage.setItem('redotpayBalance', this.redotpayBalance);
-                    localStorage.setItem('cihBalance', this.cihBalance);
-                    localStorage.setItem('transactions', JSON.stringify(this.transactions));
+                    localStorage.setItem('binance_v2_binance', this.binanceBalance);
+                    localStorage.setItem('binance_v2_redot', this.redotpayBalance);
+                    localStorage.setItem('binance_v2_cih', this.cihBalance);
+                    localStorage.setItem('binance_v2_tx', JSON.stringify(this.transactions));
                 },
 
                 get totalNetWorthMAD() {
@@ -245,5 +84,3 @@
             }
         }
     </script>
-</body>
-</html>
