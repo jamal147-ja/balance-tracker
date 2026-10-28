@@ -6,15 +6,13 @@
     <title>Balance Tracker Dashboard</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen" x-data="balanceApp()">
+<body class="bg-gray-900 text-gray-100 min-h-screen">
 
     <!-- Header -->
     <header class="bg-gray-800 border-b border-gray-700 py-4 px-6 shadow-md">
@@ -38,8 +36,8 @@
                     <span class="bg-amber-500/10 text-amber-400 text-xs px-2 py-1 rounded">API Connected</span>
                 </div>
                 <div class="mt-4">
-                    <h2 class="text-2xl font-bold text-white" x-text="formatUSD(binanceBalance)"></h2>
-                    <p class="text-xs text-gray-400 mt-1" x-text="formatMAD(binanceBalance * 10)"></p>
+                    <h2 class="text-2xl font-bold text-white" id="binance-usd">$0.00</h2>
+                    <p class="text-xs text-gray-400 mt-1" id="binance-mad">0.00 MAD</p>
                 </div>
             </div>
 
@@ -50,8 +48,8 @@
                     <span class="bg-blue-500/10 text-blue-400 text-xs px-2 py-1 rounded">API Connected</span>
                 </div>
                 <div class="mt-4">
-                    <h2 class="text-2xl font-bold text-white" x-text="formatUSD(redotpayBalance)"></h2>
-                    <p class="text-xs text-gray-400 mt-1" x-text="formatMAD(redotpayBalance * 10)"></p>
+                    <h2 class="text-2xl font-bold text-white" id="redot-usd">$0.00</h2>
+                    <p class="text-xs text-gray-400 mt-1" id="redot-mad">0.00 MAD</p>
                 </div>
             </div>
 
@@ -62,8 +60,8 @@
                     <span class="bg-purple-500/10 text-purple-400 text-xs px-2 py-1 rounded">Manual / CSV</span>
                 </div>
                 <div class="mt-4">
-                    <h2 class="text-2xl font-bold text-white" x-text="formatMAD(cihBalance)"></h2>
-                    <p class="text-xs text-gray-400 mt-1" x-text="formatUSD(cihBalance / 10)"></p>
+                    <h2 class="text-2xl font-bold text-white" id="cih-mad">0.00 MAD</h2>
+                    <p class="text-xs text-gray-400 mt-1" id="cih-usd">$0.00</p>
                 </div>
             </div>
 
@@ -74,8 +72,8 @@
                     <span class="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-1 rounded">Combined</span>
                 </div>
                 <div class="mt-4">
-                    <h2 class="text-2xl font-bold text-emerald-400" x-text="formatMAD(totalNetWorthMAD)"></h2>
-                    <p class="text-xs text-emerald-300/70 mt-1" x-text="formatUSD(totalNetWorthMAD / 10)"></p>
+                    <h2 class="text-2xl font-bold text-emerald-400" id="total-mad">0.00 MAD</h2>
+                    <p class="text-xs text-emerald-300/70 mt-1" id="total-usd">$0.00</p>
                 </div>
             </div>
         </div>
@@ -85,10 +83,10 @@
             <!-- Add Transaction Form -->
             <div class="bg-gray-800 border border-gray-700 p-5 rounded-xl shadow lg:col-span-1">
                 <h3 class="text-lg font-bold text-white mb-4">➕ Add New Transaction</h3>
-                <form @submit.prevent="addTransaction" class="space-y-4">
+                <form id="tx-form" class="space-y-4">
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Account</label>
-                        <select x-model="form.account" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        <select id="form-account" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
                             <option value="CIH Bank">CIH Bank (MAD)</option>
                             <option value="Binance">Binance (USD)</option>
                             <option value="RedotPay">RedotPay (USD)</option>
@@ -96,18 +94,18 @@
                     </div>
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Transaction Type</label>
-                        <select x-model="form.type" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        <select id="form-type" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
                             <option value="income">Deposit / Income (+)</option>
                             <option value="expense">Withdrawal / Expense (-)</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Amount</label>
-                        <input type="number" step="0.01" x-model.number="form.amount" placeholder="0.00" required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        <input type="number" step="0.01" id="form-amount" placeholder="0.00" required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">Description</label>
-                        <input type="text" x-model="form.description" placeholder="e.g., P2P transfer, Ads..." required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="form-desc" placeholder="e.g., P2P transfer, Ads..." required class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500">
                     </div>
                     <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg transition duration-200">
                         Save Transaction
@@ -130,53 +128,133 @@
                                     <th class="p-3">Action</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-700">
-                                <template x-for="(tx, index) in transactions" :key="index">
-                                    <tr>
-                                        <td class="p-3" x-text="tx.account"></td>
-                                        <td class="p-3 text-gray-300" x-text="tx.description"></td>
-                                        <td class="p-3 font-semibold" :class="tx.type === 'income' ? 'text-emerald-400' : 'text-rose-400'">
-                                            <span x-text="tx.type === 'income' ? '+' : '-'"></span>
-                                            <span x-text="tx.amount"></span>
-                                            <span x-text="tx.account === 'CIH Bank' ? 'MAD' : 'USD'"></span>
-                                        </td>
-                                        <td class="p-3 text-xs text-gray-400" x-text="tx.date"></td>
-                                        <td class="p-3">
-                                            <button @click="deleteTransaction(index)" class="text-rose-400 hover:text-rose-300 text-xs bg-rose-500/10 px-2 py-1 rounded">Delete</button>
-                                        </td>
-                                    </tr>
-                                </template>
-                                <template x-if="transactions.length === 0">
-                                    <tr>
-                                        <td colspan="5" class="text-center py-6 text-gray-400">No transactions recorded yet.</td>
-                                    </tr>
-                                </template>
+                            <tbody id="tx-tbody" class="divide-y divide-gray-700">
+                                <!-- Dynamic rows -->
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
-
     </main>
 
-    <!-- App Logic -->
+    <!-- Vanilla JS Logic -->
     <script>
-        function balanceApp() {
-            return {
-                binanceBalance: Number(localStorage.getItem('b_v3')) ? JSON.parse(localStorage.getItem('b_v3')).binance : 12205.98,
-                redotpayBalance: Number(localStorage.getItem('b_v3')) ? JSON.parse(localStorage.getItem('b_v3')).redot : 2919.29,
-                cihBalance: Number(localStorage.getItem('b_v3')) ? JSON.parse(localStorage.getItem('b_v3')).cih : 2907.51,
-                
-                form: {
-                    account: 'CIH Bank',
-                    type: 'income',
-                    amount: '',
-                    description: ''
-                },
+        let state = JSON.parse(localStorage.getItem('tracker_state_v4')) || {
+            binance: 12205.98,
+            redot: 2919.29,
+            cih: 2907.51,
+            transactions: []
+        };
 
-                transactions: localStorage.getItem('b_v3_tx') ? JSON.parse(localStorage.getItem('b_v3_tx')) : [],
+        function save() {
+            localStorage.setItem('tracker_state_v4', JSON.stringify(state));
+        }
 
-                saveData() {
-                    const state = {
-                        binance:
+        function formatUSD(val) {
+            return '$' + Number(val).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        function formatMAD(val) {
+            return Number(val).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' MAD';
+        }
+
+        function render() {
+            document.getElementById('binance-usd').innerText = formatUSD(state.binance);
+            document.getElementById('binance-mad').innerText = formatMAD(state.binance * 10);
+
+            document.getElementById('redot-usd').innerText = formatUSD(state.redot);
+            document.getElementById('redot-mad').innerText = formatMAD(state.redot * 10);
+
+            document.getElementById('cih-mad').innerText = formatMAD(state.cih);
+            document.getElementById('cih-usd').innerText = formatUSD(state.cih / 10);
+
+            let totalMAD = state.cih + (state.binance * 10) + (state.redot * 10);
+            document.getElementById('total-mad').innerText = formatMAD(totalMAD);
+            document.getElementById('total-usd').innerText = formatUSD(totalMAD / 10);
+
+            let tbody = document.getElementById('tx-tbody');
+            tbody.innerHTML = '';
+
+            if (state.transactions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-400">No transactions recorded yet.</td></tr>`;
+                return;
+            }
+
+            state.transactions.forEach((tx, index) => {
+                let tr = document.createElement('tr');
+                let colorClass = tx.type === 'income' ? 'text-emerald-400' : 'text-rose-400';
+                let sign = tx.type === 'income' ? '+' : '-';
+                let currency = tx.account === 'CIH Bank' ? 'MAD' : 'USD';
+
+                tr.innerHTML = `
+                    <td class="p-3">${tx.account}</td>
+                    <td class="p-3 text-gray-300">${tx.description}</td>
+                    <td class="p-3 font-semibold ${colorClass}">${sign}${tx.amount} ${currency}</td>
+                    <td class="p-3 text-xs text-gray-400">${tx.date}</td>
+                    <td class="p-3"><button onclick="deleteTx(${index})" class="text-rose-400 hover:text-rose-300 text-xs bg-rose-500/10 px-2 py-1 rounded">Delete</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById('tx-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let account = document.getElementById('form-account').value;
+            let type = document.getElementById('form-type').value;
+            let amount = Number(document.getElementById('form-amount').value);
+            let description = document.getElementById('form-desc').value;
+
+            if (!amount || !description) return;
+
+            if (account === 'CIH Bank') {
+                if (type === 'income') state.cih += amount;
+                else state.cih -= amount;
+            } else if (account === 'Binance') {
+                if (type === 'income') state.binance += amount;
+                else state.binance -= amount;
+            } else if (account === 'RedotPay') {
+                if (type === 'income') state.redot += amount;
+                else state.redot -= amount;
+            }
+
+            state.transactions.unshift({
+                account,
+                type,
+                amount,
+                description,
+                date: new Date().toISOString().split('T')[0]
+            });
+
+            save();
+            render();
+
+            document.getElementById('form-amount').value = '';
+            document.getElementById('form-desc').value = '';
+        });
+
+        function deleteTx(index) {
+            let tx = state.transactions[index];
+            let amt = Number(tx.amount);
+
+            if (tx.account === 'CIH Bank') {
+                if (tx.type === 'income') state.cih -= amt;
+                else state.cih += amt;
+            } else if (tx.account === 'Binance') {
+                if (tx.type === 'income') state.binance -= amt;
+                else state.binance += amt;
+            } else if (tx.account === 'RedotPay') {
+                if (tx.type === 'income') state.redot -= amt;
+                else state.redot += amt;
+            }
+
+            state.transactions.splice(index, 1);
+            save();
+            render();
+        }
+
+        // Initial render on load
+        render();
+    </script>
+</body>
+</html>
