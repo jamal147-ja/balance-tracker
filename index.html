@@ -160,13 +160,13 @@
 
     </main>
 
-    <!-- App Logic -->
+    <!-- App Logic with LocalStorage -->
     <script>
         function balanceApp() {
             return {
-                binanceBalance: 12205.98,
-                redotpayBalance: 2919.29,
-                cihBalance: 2907.51,
+                binanceBalance: Number(localStorage.getItem('binanceBalance')) || 12205.98,
+                redotpayBalance: Number(localStorage.getItem('redotpayBalance')) || 2919.29,
+                cihBalance: Number(localStorage.getItem('cihBalance')) || 2907.51,
                 
                 form: {
                     account: 'CIH Bank',
@@ -175,7 +175,14 @@
                     description: ''
                 },
 
-                transactions: [],
+                transactions: JSON.parse(localStorage.getItem('transactions')) || [],
+
+                saveData() {
+                    localStorage.setItem('binanceBalance', this.binanceBalance);
+                    localStorage.setItem('redotpayBalance', this.redotpayBalance);
+                    localStorage.setItem('cihBalance', this.cihBalance);
+                    localStorage.setItem('transactions', JSON.stringify(this.transactions));
+                },
 
                 get totalNetWorthMAD() {
                     let binanceMAD = this.binanceBalance * 10;
@@ -213,6 +220,8 @@
                         date: new Date().toISOString().split('T')[0]
                     });
 
+                    this.saveData();
+
                     this.form.amount = '';
                     this.form.description = '';
                 },
@@ -231,6 +240,7 @@
                         else this.redotpayBalance += amt;
                     }
                     this.transactions.splice(index, 1);
+                    this.saveData();
                 }
             }
         }
